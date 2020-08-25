@@ -11,6 +11,8 @@ library(vegan)
 library(doParallel)
 library(tidyverse)
 
+### GENERATE PHYLOSEQ OBJECT ######
+
 # import ASV table (eg "table_IDs_sterivex") and ID-to-taxonomy table
 
 microbe <- column_to_rownames(Noro_baselines_16S_all, 'Taxonomy')
@@ -28,8 +30,16 @@ TAX = tax_table(tax_table)
 MET = sample_data(metadata)
 physeq = phyloseq(ASV, TAX, MET)
 
-# Run DivNet at the family level
+### RUN DIVNET USING PHYLOSEQ OBJECT ######
+
+# Run DivNet at the family level for box / scatter plots
 divnet_family <- divnet(tax_glom(physeq, taxrank="Family"), ncores=4) #X="Group"
+
+# Run DivNet at the ASV level for nMDS
+divnet_asv <- divnet(physeq, 
+                     base="Bacteroidetes;Bacteroidia;Bacteroidales;Bacteroidaceae;Bacteroides;unidentified", ncores=4)
+
+### SHANNON AND SIMPSON ALPHA DIVERSITY METRICS AND PLOTS (FIG S2A AND S2B) ###
 
 # Show all estimated alpha and beta diversity metrics
 divnet_family %>% names
@@ -67,3 +77,26 @@ simp %>%
   ggplot(aes(group, estimate, group=group))+ geom_boxplot() +
   geom_point(color="black", size=3, alpha=0.75) +
   theme_classic()
+
+### BETA DIVERSITY: BRAY-CURTIS NMDS PLOT (FIG S2C) ########
+
+# Pull out Bray-Curtis distances as a square distance matrix
+bc <- divnet_family$'bray-curtis'
+
+# Use metaMDS in vegan to run NMDS analysis on Bray-Curtis distance matrix
+nmds_bc <- metaMDS(bc)
+
+# extract scores from NMDS
+data.scores <- as.data.frame(scores(nmds_bc))
+
+# add in metadata (asymptomatic vs symptomatic)
+data.scores$Group <- metadata$Group
+
+# Plot nMDS
+
+nmds = data.frame(data.scores, Group=as.factor(data.scores$Group)) 
+#shape=as.factor(data.scores$Individual))
+
+p <- ggplot(nmds, aes(x=NMDS1, y=NMDS2, colour=Group)) # shape=shape 
+
+p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") 
