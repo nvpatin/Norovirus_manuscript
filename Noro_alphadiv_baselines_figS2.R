@@ -13,7 +13,7 @@ library(tidyverse)
 
 ### GENERATE PHYLOSEQ OBJECT ######
 
-# import ASV table (eg "table_IDs_sterivex") and ID-to-taxonomy table
+# import ASV table and ID-to-taxonomy table
 
 microbe <- column_to_rownames(Noro_baselines_16S_all, 'Taxonomy')
 tax_table <- column_to_rownames(Noro_baselines_taxonomy, 'Taxonomy')
@@ -33,9 +33,9 @@ physeq = phyloseq(ASV, TAX, MET)
 ### RUN DIVNET USING PHYLOSEQ OBJECT ######
 
 # Run DivNet at the family level for box / scatter plots
-divnet_family <- divnet(tax_glom(physeq, taxrank="Family"), ncores=4) #X="Group"
+divnet_family <- divnet(tax_glom(physeq, taxrank="Family"), ncores=4) 
 
-# Run DivNet at the ASV level for nMDS
+# Run DivNet at the ASV level for NMDS
 divnet_asv <- divnet(physeq, 
                      base="Bacteroidetes;Bacteroidia;Bacteroidales;Bacteroidaceae;Bacteroides;unidentified", ncores=4)
 
@@ -81,7 +81,7 @@ simp %>%
 ### BETA DIVERSITY: BRAY-CURTIS NMDS PLOT (FIG S2C) ########
 
 # Pull out Bray-Curtis distances as a square distance matrix
-bc <- divnet_family$'bray-curtis'
+bc <- divnet_asv$'bray-curtis'
 
 # Use metaMDS in vegan to run NMDS analysis on Bray-Curtis distance matrix
 nmds_bc <- metaMDS(bc)
@@ -100,3 +100,8 @@ nmds = data.frame(data.scores, Group=as.factor(data.scores$Group))
 p <- ggplot(nmds, aes(x=NMDS1, y=NMDS2, colour=Group)) # shape=shape 
 
 p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") 
+
+#### RUN ANOSIM ON BRAY-CURTIS DISSIMILARITY MATRIX ####
+
+bc_anosim <- anosim(bc, grouping=metadata$Group)
+bc_anosim
