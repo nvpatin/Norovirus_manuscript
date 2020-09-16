@@ -36,19 +36,7 @@ physeq = phyloseq(ASV, TAX, MET)
 divnet_family <- divnet(tax_glom(physeq, taxrank="Family"), ncores=4) 
 
 # Run DivNet at the ASV level for NMDS
-divnet_asv <- divnet(physeq, 
-                     base="Bacteroidetes;Bacteroidia;Bacteroidales;Bacteroidaceae;Bacteroides;gut", ncores=4)
-divnet_asv <- divnet(physeq,
-                    base="Actinobacteria;Coriobacteriia;Coriobacteriales;Coriobacteriaceae;Collinsella;uncultured", ncores=4)
-
-divnet_asv <- divnet(physeq,
-                     base="Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae", ncores=4)
-
-divnet_asv <- divnet(physeq,
-                     base="Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;[Eubacterium]", ncores=4)
-
-divnet_asv <- divnet(physeq, base="Firmicutes", ncores=4)
-
+# Use a "base" taxon that is present across all samples at even levels
 divnet_asv <- divnet(physeq,
                      base="Firmicutes;Bacilli;Bacillales;Staphylococcaceae;S31;Staphylococcaceae", ncores=4)
 
@@ -112,7 +100,8 @@ nmds = data.frame(data.scores, Group=as.factor(data.scores$Group))
 
 p <- ggplot(nmds, aes(x=NMDS1, y=NMDS2, colour=Group)) # shape=shape 
 
-p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") 
+p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") +
+  scale_color_manual(values=c("red","forestgreen"))
 
 #### RUN ANOSIM ON BRAY-CURTIS DISSIMILARITY MATRIX ####
 
@@ -140,7 +129,8 @@ nmds = data.frame(data.scores, Group=as.factor(data.scores$Group))
 
 p <- ggplot(nmds, aes(x=NMDS1, y=NMDS2, colour=Group)) # shape=shape 
 
-p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") 
+p + theme_classic() + geom_point(size=3) + labs(x = "MDS1", y = "MDS2") +
+  scale_color_manual(values=c("red","forestgreen"))
 
 #### RUN ANOSIM ON MASH DISSIMILARITY MATRIX ####
 
